@@ -1,0 +1,2 @@
+defmodule Firehose do
+end
