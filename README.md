@@ -1,14 +1,9 @@
 # Firehose
 
-This library accumulates and sends data in batches to AWS Firehose.
-
-It helps to manage efficient delivery of small records which serialized, accumulated and batched dealing with Firehose limitation. It allows fill each Records with maximum efficiency (send up to 1MB per record and 4MB per batch):
+This library helps to manage data sending to AWS Firehose dealing with its limitations:
 
 > The maximum size of a record sent to Kinesis Data Firehose, before base64-encoding, is 1,000 KiB.
-
-> The PutRecordBatch operation can take up to 500 records per call or 4 MiB per call, whichever is smaller.
-
-> ...the size of each record rounded up to the nearest 5KB
+> The PutRecordBatch operation can take up to 500 records per call or 4 MiB per call, whichever is smaller...the size of each record rounded up to the nearest 5KB
 
 ## Installation
 
@@ -25,13 +20,10 @@ end
 
 ## Usage
 
-Create module which will manage events:
+Create module which will handle callbacks:
 
 ```elixir
-defmodule Events do
-  use Firehose.Manager
-
-  # Optional callbacks
+defmodule Event.Handler do
   def subscribe(:failed, %Firehose.Batch{} = batch, aws_response) do
     # This callback is triggered when retry count exhausted and batch not delivered.
     # You can add specific logic for this case (write data to queue or database etc) or
@@ -52,18 +44,18 @@ config :ex_aws,
   access_key_id: [{:system, "AWS_ACCESS_KEY_ID"}, :instance_role],
   secret_access_key: [{:system, "AWS_SECRET_ACCESS_KEY"}, :instance_role]
 
-config :firehose, Events,
+config :firehose, Firehose.Manager,
+  handlers: [Event.Handler],
   flush_interval: 1_000, # Flush batches every seconds or on batch size limit
-  retry_count: 5,        # Retry count for failed requests
+  retries: 5,            # Retry count for failed requests
   serializer: Poison,    # Event serializer: should respond to `encode` and `decode` methods
   delimiter: "\n",       # Add delimiter after each event or add nothing if `false` or `nil` set
-  remove_empty_keys: true# All keys without values (nil or blank string) will be removed to reduce event's size
 ```
 
-Add your manager to your supervisor and thats all. You can emit events and efficiently send them to AWS Firehose:
+Add `Firehose.Manager` to your supervisor and thats all. You can emit events to AWS Firehose:
 
 ```elixir
-Events.emit("logs", %{"name" => "pageview", "ua" => "..."})
+Firehose.emit("logs", %{"name" => "pageview", "ua" => "..."})
 ```
 
 

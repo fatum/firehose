@@ -5,7 +5,7 @@ defmodule Firehose.MixProject do
     [
       app: :firehose,
       description: "This application accumulates and sends data in batches to AWS Firehose",
-      version: "0.1.0",
+      version: "0.4.0",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       package: package(),
