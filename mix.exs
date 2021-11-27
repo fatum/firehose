@@ -37,7 +37,8 @@ defmodule Firehose.MixProject do
       {:ex_aws_firehose, "~> 2.0"},
       {:poison, "~> 3.0"},
       {:hackney, "~> 1.9"},
-      {:ex_doc, ">= 0.0.0", only: :dev}
+      {:ex_doc, ">= 0.0.0", only: :dev},
+      {:mox, "~> 1.0.1", only: :test}
     ]
   end
 end
