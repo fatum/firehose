@@ -5,8 +5,6 @@ defmodule Firehose.Emitter do
   alias Firehose.{Emitter, Batch, Settings, Utils}
   defstruct [:stream, :manager, :settings, :batch]
 
-  @backend Settings.backend()
-
   def start_link(stream, manager) do
     GenServer.start_link(__MODULE__, {stream, manager}, [])
   end
@@ -74,13 +72,16 @@ defmodule Firehose.Emitter do
     {:noreply, %Emitter{state | batch: %Batch{stream: stream}}}
   end
 
+  # we need this to catch termination
+  def handle_info({:EXIT, _pid, _}, state), do: {:noreply, state}
+
   def terminate(reason, %Emitter{} = state) do
     Logger.info(
       "[Firehose] [#{state.batch.stream}] Terminating due to #{inspect(reason)}. Pending batch #{debug(state)}"
     )
 
     # Flush events
-    @backend.sync(state, Settings.retries())
+    Settings.backend().sync(state, Settings.retries())
 
     :ok
   end
@@ -88,7 +89,7 @@ defmodule Firehose.Emitter do
   defp flush(%Emitter{} = state, tries) do
     Logger.info("[Firehose] [#{state.batch.stream}] Flushing pending batch #{debug(state)}")
 
-    spawn(fn -> @backend.sync(state, tries) end)
+    spawn(fn -> Settings.backend().sync(state, tries) end)
   end
 
   defp debug(state) do
