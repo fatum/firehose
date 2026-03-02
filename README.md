@@ -52,7 +52,7 @@ config :firehose, Firehose.Manager,
   delimiter: "\n",       # Add delimiter after each event or add nothing if `false` or `nil` set
 ```
 
-Add `Firehose.Manager` to your supervisor and thats all. You can emit events to AWS Firehose:
+Add `Firehose.Supervisor` to your supervisor tree and thats it. You can emit events to AWS Firehose like this:
 
 ```elixir
 Firehose.emit("logs", %{"name" => "pageview", "ua" => "..."})
